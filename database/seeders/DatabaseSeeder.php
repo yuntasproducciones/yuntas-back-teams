@@ -22,7 +22,6 @@ class DatabaseSeeder extends Seeder
             
             // Productos
             ProductoSeeder::class,
-            EspecificacionSeeder::class,
             DimensionSeeder::class,
             ImagenProductoSeeder::class,
             ProductoRelacionadoSeeder::class,

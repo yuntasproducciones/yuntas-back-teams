@@ -10,6 +10,7 @@ class Producto extends Model
 {
     protected $fillable = [
         'nombre',
+        'link',
         'titulo',
         'subtitulo',
         'stock',
@@ -18,8 +19,7 @@ class Producto extends Model
         'lema',
         'descripcion',
         'especificaciones',
-        'imagenes',
-        'mensaje_correo'
+        'imagenes'
     ];
 
     public $timestamps = true;

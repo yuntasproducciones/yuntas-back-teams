@@ -36,7 +36,6 @@ class V2StoreProductoRequest extends FormRequest
             'imagenes.*' => "file|image|max:2048",
             'textos_alt' => "required|array|min:1|max:10",
             'textos_alt.*' => "string|max:255",
-            'mensaje_correo' => "required|string|max:255"
         ];
     }
 }

@@ -74,7 +74,7 @@ class UserController extends BasicController
             $userData['password'] = Hash::make($request['password']);
 
             $user = User::create($userData);
-            $user->assignRole('USER');
+            $user->assignRole('user');
             
             DB::commit();
 
@@ -86,58 +86,72 @@ class UserController extends BasicController
         }
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/v1/users",
-     *     summary="Listar todos los usuarios",
-     *     description="Obtiene una lista de todos los usuarios registrados con sus roles",
-     *     operationId="indexUsers",
-     *     tags={"Usuarios"},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Lista de usuarios obtenida exitosamente",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Usuarios listados correctamente."),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="array",
-     *                 @OA\Items(
-     *                     type="object",
-     *                     @OA\Property(property="user_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="John Doe"),
-     *                     @OA\Property(property="email", type="string", example="johndoe@example.com"),
-     *                     @OA\Property(property="celular", type="string", example="1234567890"),
-     *                     @OA\Property(property="fecha", type="string", format="date", example="1990-01-01"),
-     *                     @OA\Property(property="role", type="string", example="USER")
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Error del servidor",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Ocurrió un problema al listar los usuarios"),
-     *             @OA\Property(property="errors", type="null")
-     *         )
-     *     )
-     * )
-     */
+/**
+ * @OA\Get(
+ *     path="/api/v1/users",
+ *     summary="Listar todos los usuarios",
+ *     description="Obtiene una lista de todos los usuarios registrados con sus roles",
+ *     operationId="indexUsers",
+ *     tags={"Usuarios"},
+ *     @OA\Response(
+ *         response=200,
+ *         description="Lista de usuarios obtenida exitosamente",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=true),
+ *             @OA\Property(property="message", type="string", example="Usuarios listados correctamente."),
+ *             @OA\Property(
+ *                 property="data",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     @OA\Property(property="id", type="integer", example=1),
+ *                     @OA\Property(property="name", type="string", example="John Doe"),
+ *                     @OA\Property(property="email", type="string", example="johndoe@example.com"),
+ *                     @OA\Property(property="celular", type="string", example="1234567890"),
+ *                     @OA\Property(property="roles", type="array",
+ *                         @OA\Items(type="string"),
+ *                         example={"USER"}
+ *                     )
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=500,
+ *         description="Error del servidor",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="success", type="boolean", example=false),
+ *             @OA\Property(property="message", type="string", example="Ocurrió un problema al listar los usuarios"),
+ *             @OA\Property(property="errors", type="null")
+ *         )
+ *     )
+ * )
+ */
     public function index()
     {
         try {
-            $userList = User::all();
+            $users = User::with('roles')->get();
 
-            $message = $userList->isEmpty() ? "No hay usuarios disponibles." : "Usuarios listados correctamente.";
-            return $this->successResponse($userList, $message);
+            $data = $users->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'celular' => $user->celular,
+                    'roles' => $user->getRoleNames(), 
+                ];
+            });
 
-        } catch(\Exception $e) {
+            $message = $users->isEmpty()
+                ? "No hay usuarios disponibles."
+                : "Usuarios listados correctamente.";
+
+            return $this->successResponse($data, $message);
+
+        } catch (\Exception $e) {
             return $this->internalServerErrorResponse("Ocurrió un problema al listar los usuarios: " . $e->getMessage());
         }
     }
-
     /**
      * @OA\Delete(
      *     path="/api/v1/users/{id}",
@@ -277,4 +291,83 @@ class UserController extends BasicController
             return $this->internalServerErrorResponse("Ocurrió un problema al actualizar al usuario: " . $e->getMessage());
         }
     }
+
+    /**
+ * @OA\Post(
+ *     path="/api/v1/users/{id}/role",
+ *     summary="Asignar rol a un usuario",
+ *     description="Asigna un rol específico a un usuario por su ID",
+ *     operationId="assignRoleToUser",
+ *     tags={"Usuarios"},
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         description="ID del usuario al que se le asignará el rol",
+ *         required=true,
+ *         @OA\Schema(
+ *             type="integer",
+ *             format="int64"
+ *         )
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"role"},
+ *             @OA\Property(property="role", type="string", example="ADMIN", description="Nombre del rol a asignar")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Rol asignado correctamente",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Rol asignado correctamente"),
+ *             @OA\Property(
+ *                 property="user",
+ *                 type="object",
+ *                 description="Datos del usuario con el rol asignado",
+ *                 @OA\Property(property="id", type="integer", example=1),
+ *                 @OA\Property(property="name", type="string", example="John Doe"),
+ *                 @OA\Property(property="email", type="string", example="johndoe@example.com"),
+ *                 @OA\Property(property="roles", type="array", @OA\Items(type="string"), example={"ADMIN"})
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Error de validación",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="El rol es requerido y debe existir"),
+ *             @OA\Property(property="errors", type="object")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Usuario no encontrado",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Usuario no encontrado")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=500,
+ *         description="Error del servidor",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Ocurrió un problema al asignar el rol")
+ *         )
+ *     )
+ * )
+ */
+    public function assignRoleToUser(Request $request, $userId)
+    {
+    $request->validate([
+        'role' => 'required|string|exists:roles,name',
+    ]);
+
+    $user = User::findOrFail($userId);
+
+    // Puedes limpiar roles anteriores si quieres solo un rol
+    $user->syncRoles([$request->role]);
+
+    return response()->json(['message' => 'Rol asignado correctamente', 'user' => $user]);
+    }
+
 }

@@ -23,15 +23,15 @@ class UpdateProductoRequest extends FormRequest
     {
         return [
             'nombre' => 'nullable|string|max:255',
+            'link' => 'required|string|unique|max:255',
             'titulo' => 'nullable|string|max:255',
             'subtitulo' => 'nullable|string|max:255',
             'lema' => 'nullable|string|max:255',
             'descripcion' => 'nullable|string',
-            'imagen_principal' => 'nullable|string|max:255',
+            'imagen_principal' => 'nullable|image',
             'stock' => 'nullable|integer|min:0',
             'precio' => 'nullable|numeric|min:0|max:99999999.99',
-            'seccion' => 'nullable|string|max:100',
-            'mensaje_correo' => 'nullable|string',
+            'seccion' => 'nullable|string|max:100'
         ];
     }
 }

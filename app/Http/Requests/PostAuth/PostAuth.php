@@ -27,10 +27,10 @@ class PostAuth extends FormRequest
     public function rules()
     {
         return [
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email',
             'password' => 'required|string',
             'device_name' => 'sometimes|string',
-            'single_session' => 'sometimes|boolean'
+            'single_session' => 'sometimes|boolean',
         ];
     }
 
