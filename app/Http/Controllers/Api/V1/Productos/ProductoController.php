@@ -445,7 +445,12 @@ class ProductoController extends BasicController
     {
         try {
             $producto = Producto::findOrFail($id);
+            $blog = $producto->blogs;
+            foreach ($blog as $item) {
+                $item->delete();
+            }
             $producto->delete();
+            
             return $this->successResponse(null, 'Producto eliminado exitosamente');
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {

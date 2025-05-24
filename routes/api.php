@@ -27,7 +27,7 @@ Route::get('/blog_body/{id}', [BlogBodyController::class, "show"]);
 
 // rutas create blog
 Route::post('/card', [CardController::class, "create"]);
-Route::post('/blog', [BlogController::class, "create"]);
+Route::post('/blogs', [BlogController::class, "create"]);
 Route::post('/blog_head', [BlogHeadController::class, "create"]);
 Route::post('/blog_body', [BlogBodyController::class, "create"]);
 Route::post('/blog_footer', [BlogFooterController::class, "create"]);
@@ -39,7 +39,7 @@ Route::post('/card/blog/images_footer/{id}', [CardController::class, "imagesFoot
 
 // rutas update blog
 Route::put('/card/{id}', [CardController::class, "update"]);
-Route::put('/blog/{id}', [BlogController::class, "update"]);
+Route::put('/blogs/{id}', [BlogController::class, "update"]);
 Route::put('/blog_head/{id}', [BlogHeadController::class, "update"]);
 Route::put('/blog_body/{id}', [BlogBodyController::class, "update"]);
 Route::put('/blog_footer/{id}', [BlogFooterController::class, "update"]);
@@ -92,6 +92,7 @@ Route::prefix('v1')->group(function () {
     Route::controller(BlogController::class)->prefix('blogs')->group(function(){
         Route::get('/', 'index');
         Route::get('/{blog}', 'show');
+        Route::get('/link/{link}', 'getByLink');
 
         Route::middleware(['auth:sanctum', 'role:ADMIN|USER'])->group(function () {
             Route::post('/', 'store');

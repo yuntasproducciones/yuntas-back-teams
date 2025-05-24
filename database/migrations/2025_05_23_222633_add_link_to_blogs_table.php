@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('blogs', function (Blueprint $table) {
-            $table->unsignedBigInteger('producto_id')->nullable()->after('id_blog');
-            $table->foreign('producto_id')->references('id')->on('productos')->onDelete('cascade');
+            $table->string('link')->nullable()->after('producto_id');
         });
     }
 
@@ -23,8 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('blogs', function (Blueprint $table) {
-            $table->dropForeign(['producto_id']);
-            $table->dropColumn('producto_id');
+            $table->dropColumn('link');
         });
     }
 };
