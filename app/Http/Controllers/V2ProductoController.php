@@ -182,7 +182,9 @@ class V2ProductoController extends Controller
             "especificaciones" => $datosValidados["especificaciones"],
         ]);
 
+        $producto->productosRelacionados()->sync($datosValidados['relacionados']);
         $producto->imagenes()->createMany($imagenesProcesadas);
+
         return response()->json(["message"=>"Producto insertado exitosamente"], 201);
     }
 
@@ -556,8 +558,11 @@ class V2ProductoController extends Controller
             "descripcion" => $datosValidados["descripcion"],
             "especificaciones" => json_encode($datosValidados["especificaciones"]),
         ]);
+
+        $producto->productosRelacionados()->sync($datosValidados['relacionados']);
         $producto->imagenes()->delete();
         $producto->imagenes()->createMany($imagenesProcesadas);
+        
         return response()->json(["message"=>"Producto actualizado exitosamente"], 201);
     }
 
