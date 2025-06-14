@@ -20,15 +20,22 @@ class ApiResponseService
     }
 
     /**
-     * Respuesta de éxito sin contenido
+     * Respuesta de éxito sin contenido (200 OK sin campo 'data')
      */
-    public function noContentResponse(string $message = 'Operación exitosa'): JsonResponse
+    public function successNoContentResponse(string $message = 'Operación exitosa'): JsonResponse
     {
         return response()->json([
             'success' => true,
-            'message' => $message,
-            'data' => null
-        ], HttpStatusCode::NO_CONTENT->value);
+            'message' => $message
+        ], HttpStatusCode::OK->value); // Cambiado a 200 OK
+    }
+
+    /**
+     * Respuesta de éxito sin contenido (204 No Content) - Alias para compatibilidad
+     */
+    public function noContentResponse(string $message = 'Operación exitosa'): JsonResponse
+    {
+        return $this->successNoContentResponse($message);
     }
 
     /**
@@ -58,7 +65,7 @@ class ApiResponseService
 
     public function notFoundResponse(string $message = 'Recurso no encontrado'): JsonResponse
     {
-        return $this->errorResponse($message, HttpStatusCode::NOT_FOUND);
+        return $this->errorResponse($message, HttpStatusCode::NOT_FOUND, []); // Pasar un array vacío para 'errors'
     }
 
     public function methodNotAllowedResponse(string $message = 'Método no permitido'): JsonResponse

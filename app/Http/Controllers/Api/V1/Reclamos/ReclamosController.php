@@ -8,6 +8,7 @@ use App\Http\Requests\PostReclamo\PostReclamo;
 use App\Models\DatosPersonal;
 use App\Models\Reclamo;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\ModelNotFoundException; // Importar ModelNotFoundException
 
 /**
  * @OA\Tag(
@@ -74,7 +75,7 @@ class ReclamosController extends BasicController
                 ];
             });
 
-            return $this->successResponse($reclamos, 'Productos obtenidos exitosamente', HttpStatusCode::OK);
+            return $this->successResponse($reclamos, 'Reclamos obtenidos exitosamente', HttpStatusCode::OK);
 
         } catch(\Exception $e) {
             return $this->errorResponse('Error al mostrar los reclamos: ' . $e->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
@@ -213,9 +214,9 @@ class ReclamosController extends BasicController
                 'numero_doc' => $personal->numero_doc,
                 'correo' => $personal->correo,
                 'telefono' => $personal->telefono,
-                'fecha_compra' => $personal->fecha_compra,
-                'detalle_reclamo' => $personal->detalle_reclamo,
-                'monto_reclamo' => $personal->monto_reclamo,
+                'fecha_compra' => $personal->reclamos->pluck('fecha_compra'),
+                'detalle_reclamo' => $personal->reclamos->pluck('detalle_reclamo'),
+                'monto_reclamo' => $personal->reclamos->pluck('monto_reclamo'),
             ];
 
             return $this->successResponse($reclamos, 'Reclamo encontrado exitosamente', HttpStatusCode::OK);
@@ -346,12 +347,19 @@ class ReclamosController extends BasicController
     public function destroy($id)
     {
         try {
+            DB::beginTransaction();
+
             $reclamo = DatosPersonal::findOrFail($id);
             $reclamo->delete();
 
-            return $this->successResponse(null, 'Reclamo eliminado exitosamente', HttpStatusCode::OK);
+            DB::commit();
+            return $this->successNoContentResponse('Reclamo eliminado exitosamente');
 
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return $this->errorResponse('Recurso no encontrado', HttpStatusCode::NOT_FOUND, $e->getMessage());
         } catch (\Exception $e) {
+            DB::rollBack();
             return $this->errorResponse('Error al eliminar el reclamo: ' . $e->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }

@@ -4,22 +4,26 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Contains\HttpStatusCode;
+use App\Services\ApiResponseService; // Importar ApiResponseService
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class BasicController extends Controller
 {
+    protected $apiResponseService;
+
+    public function __construct(ApiResponseService $apiResponseService)
+    {
+        $this->apiResponseService = $apiResponseService;
+    }
+
     /**
      * Respuesta de éxito con datos
      */
     protected function successResponse(mixed $data, string $message = 'Operación exitosa', HttpStatusCode 
     $status = HttpStatusCode::OK): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-            'data' => $data
-        ], $status->value);
+        return $this->apiResponseService->successResponse($data, $message, $status);
     }
 
     /**
@@ -27,11 +31,15 @@ class BasicController extends Controller
      */
     protected function noContentResponse(string $message = 'Operación exitosa'): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-            'data' => null
-        ], HttpStatusCode::NO_CONTENT->value);
+        return $this->apiResponseService->noContentResponse($message);
+    }
+
+    /**
+     * Respuesta de éxito sin contenido (204 No Content)
+     */
+    protected function successNoContentResponse(string $message = 'Operación exitosa'): JsonResponse
+    {
+        return $this->apiResponseService->successNoContentResponse($message);
     }
 
     /**
@@ -40,11 +48,7 @@ class BasicController extends Controller
     protected function errorResponse(string $message, HttpStatusCode $status = 
     HttpStatusCode::BAD_REQUEST, mixed $errors = null): JsonResponse
     {
-        return response()->json([
-            'success' => false,
-            'message' => $message,
-            'errors' => $errors
-        ], $status->value);
+        return $this->apiResponseService->errorResponse($message, $status, $errors);
     }
 
     /**
@@ -52,7 +56,7 @@ class BasicController extends Controller
      */
     protected function unauthorizedResponse(string $message = 'No autorizado'): JsonResponse
     {
-        return $this->errorResponse($message, HttpStatusCode::UNAUTHORIZED);
+        return $this->apiResponseService->unauthorizedResponse($message);
     }
 
     /**
@@ -60,7 +64,7 @@ class BasicController extends Controller
      */
     protected function forbiddenResponse(string $message = 'Acceso denegado'): JsonResponse
     {
-        return $this->errorResponse($message, HttpStatusCode::FORBIDDEN);
+        return $this->apiResponseService->forbiddenResponse($message);
     }
 
     /**
@@ -68,7 +72,7 @@ class BasicController extends Controller
      */
     protected function notFoundResponse(string $message = 'Recurso no encontrado'): JsonResponse
     {
-        return $this->errorResponse($message, HttpStatusCode::NOT_FOUND);
+        return $this->apiResponseService->notFoundResponse($message);
     }
 
     /**
@@ -76,7 +80,7 @@ class BasicController extends Controller
      */
     protected function methodNotAllowedResponse(string $message = 'Método no permitido'): JsonResponse
     {
-        return $this->errorResponse($message, HttpStatusCode::METHOD_NOT_ALLOWED);
+        return $this->apiResponseService->methodNotAllowedResponse($message);
     }
 
     /**
@@ -85,7 +89,7 @@ class BasicController extends Controller
     protected function unprocessableContentResponse(string $message = 'Solicitud no procesable', 
     mixed $errors = null): JsonResponse
     {
-        return $this->errorResponse($message, HttpStatusCode::METHOD_UNPROCESSABLE_CONTENT, $errors);
+        return $this->apiResponseService->unprocessableContentResponse($message, $errors);
     }
 
     /**
@@ -93,7 +97,7 @@ class BasicController extends Controller
      */
     protected function tooManyRequestsResponse(string $message = 'Demasiadas solicitudes'): JsonResponse
     {
-        return $this->errorResponse($message, HttpStatusCode::MANY_REQUESTS);
+        return $this->apiResponseService->tooManyRequestsResponse($message);
     }
 
     /**
@@ -101,6 +105,6 @@ class BasicController extends Controller
      */
     protected function internalServerErrorResponse(string $message = 'Error interno del servidor'): JsonResponse
     {
-        return $this->errorResponse($message, HttpStatusCode::INTERNAL_SERVER_ERROR);
+        return $this->apiResponseService->internalServerErrorResponse($message);
     }
 }

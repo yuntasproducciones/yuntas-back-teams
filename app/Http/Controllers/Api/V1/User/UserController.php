@@ -7,8 +7,10 @@ use Illuminate\Http\Request;
 use App\Http\Requests\PostUser\PostUser;
 use App\Http\Requests\PostUser\PostUserUpdate;
 use App\Http\Controllers\Api\V1\BasicController;
+use App\Http\Contains\HttpStatusCode; // Importar HttpStatusCode
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\ModelNotFoundException; // Importar ModelNotFoundException
 
 /**
  * @OA\Tag(
@@ -339,8 +341,7 @@ class UserController extends BasicController
      *         description="Usuario eliminado exitosamente",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Usuario eliminado correctamente."),
-     *             @OA\Property(property="data", type="object")
+     *             @OA\Property(property="message", type="string", example="Usuario eliminado correctamente.")
      *         )
      *     ),
      *     @OA\Response(
@@ -348,8 +349,8 @@ class UserController extends BasicController
      *         description="Usuario no encontrado",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Recurso no encontrado"),
-     *             @OA\Property(property="errors", type="null")
+     *             @OA\Property(property="message", type="string", example="Usuario no encontrado"),
+     *             @OA\Property(property="errors", type="string", example="No query results for model [App\\Models\\User] 1")
      *         )
      *     ),
      *     @OA\Response(
@@ -369,12 +370,19 @@ class UserController extends BasicController
     public function destroy($id)
     {
         try {
+            DB::beginTransaction();
+
             $user = User::findOrFail($id);
             $user->delete();
 
-            return $this->successResponse($user, 'Usuario eliminado correctamente.');
+            DB::commit();
+            return $this->successNoContentResponse('Usuario eliminado correctamente.');
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return $this->errorResponse('Usuario no encontrado', HttpStatusCode::NOT_FOUND, $e->getMessage());
         } catch (\Exception $e) {
-            return $this->internalServerErrorResponse("Ocurrió un problema con la eliminación del usuario: " . $e->getMessage());
+            DB::rollBack();
+            return $this->errorResponse("Ocurrió un problema con la eliminación del usuario: " . $e->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
     }
 
