@@ -4,10 +4,9 @@ use App\Http\Controllers\Api\V1\Reclamos\ReclamosController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\User\UserController;
-use App\Http\Controllers\Api\V1\Productos\ProductoController;
 use App\Http\Controllers\Api\V1\Cliente\ClienteController;
 use App\Http\Controllers\Api\V1\Blog\BlogController;
-use App\Http\Controllers\V2ProductoController;
+use App\Http\Controllers\Api\V1\Productos\ProductoController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\EmailController;
 use App\Models\Reclamo;
@@ -141,17 +140,6 @@ Route::prefix('v1')->group(function () {
             Route::delete('/{bloque}', 'destroy')->middleware('permission:eliminar-bloques');
         });
         */
-    });
-});
-
-Route::prefix("v2")->group(function () {
-    Route::controller(V2ProductoController::class)->prefix("/productos")->group(function () {
-        Route::get("/", "index");
-        Route::get("/{id}", "show");
-        Route::get('/link/{link}', 'showByLink');
-        Route::post("/", "store");
-        Route::put("/{id}", "update");
-        Route::delete("/{id}", "destroy")->whereNumber("id");
     });
 });
 

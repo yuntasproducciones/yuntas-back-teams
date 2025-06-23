@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Producto;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateProductoRequest extends FormRequest
 {
@@ -21,17 +22,34 @@ class UpdateProductoRequest extends FormRequest
      */
     public function rules(): array
     {
+        $producto_id = $this->route('id');
         return [
-            'nombre' => 'nullable|string|max:255',
-            'link' => 'required|string|unique|max:255',
-            'titulo' => 'nullable|string|max:255',
-            'subtitulo' => 'nullable|string|max:255',
-            'lema' => 'nullable|string|max:255',
-            'descripcion' => 'nullable|string',
-            'imagen_principal' => 'nullable|image',
-            'stock' => 'nullable|integer|min:0',
-            'precio' => 'nullable|numeric|min:0|max:99999999.99',
-            'seccion' => 'nullable|string|max:100'
+            'nombre' => [
+                "required",
+                "string",
+                "max:255",
+                Rule::unique('productos', 'nombre')->ignore($producto_id),
+            ],
+            'link' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('productos', 'link')->ignore($this->route('id')),
+            ],
+            'titulo' => "required|string|max:255",
+            'subtitulo' => "required|string|max:255",
+            'stock' => "required|integer|max:1000|min:0",
+            'precio' => "required|string|max:100000|min:0",
+            'seccion' => "required|string|max:255",
+            'lema' => "required|string|max:255",
+            'descripcion' => "required|string|max:65535",
+            'especificaciones' => 'required|json|max:65535',
+            'imagenes' => "nullable|array|max:10",
+            'imagenes.*' => "file|image|max:2048",
+            'textos_alt' => "nullable|array|min:1|max:10",
+            'textos_alt.*' => "string|max:255",
+            'relacionados' => "required|array",
+            'relacionados.*' => "integer|exists:productos,id",
         ];
     }
 }
