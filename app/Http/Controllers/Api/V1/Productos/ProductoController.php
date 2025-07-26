@@ -62,7 +62,7 @@ class ProductoController extends BasicController
     public function index()
     {
         try {
-            $productos = Producto::with(['imagenes'])
+            $productos = Producto::with(['imagenes','especificaciones', 'beneficios'])
                 ->orderBy('created_at', 'desc')
                 ->paginate(8);
 
