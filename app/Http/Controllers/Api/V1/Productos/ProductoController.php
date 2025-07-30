@@ -286,31 +286,26 @@ class ProductoController extends BasicController
     public function showByLink($link)
     {
         try {
-            $producto = Producto::with(['especificaciones', 'imagenes', 'productos_relacionados'])->where('link', $link)->firstOrFail();
+            $producto = Producto::with(['imagenes'])->where('link', $link)->firstOrFail();
 
             $formattedProducto = [
                 'id' => $producto->id,
-                'title' => $producto->titulo,
-                'subtitle' => $producto->subtitulo,
-                'tagline' => $producto->lema,
-                'description' => $producto->descripcion,
-                'specs' => $producto->especificaciones->pluck('valor', 'clave'),
-                'relatedProducts' => $producto->productos_relacionados->pluck('id'),
-                'images' => $producto->imagenes->map(function($imagen) {
-                    return [
-                        'url_imagen' => $imagen->url_imagen,
-                        'texto_alt_SEO' => $imagen->texto_alt_SEO ?? ''
-                    ];
-                }),
-                'image' => $producto->imagen_principal,
-                'nombreProducto' => $producto->nombre,
-                'stockProducto' => $producto->stock,
-                'precioProducto' => $producto->precio,
-                'seccion' => $producto->seccion
+                'link' => $producto->link,
+                'nombre' => $producto->nombre,
+                'titulo' => $producto->titulo,
+                'descripcion' => $producto->descripcion,
+                'seccion' => $producto->seccion,
+                'imagen_principal' => $producto->imagen_principal,
+                'especificaciones' => $producto->especificaciones ?? [],
+                'beneficios' => $producto->beneficios ?? [],
+                'imagenes' => $producto->imagenes ?? [],
+                'created_at' => $producto->created_at,
+                'updated_at' => $producto->updated_at,
             ];
 
             return $this->successResponse($formattedProducto, 'Producto encontrado exitosamente');
         } catch (\Exception $e) {
+            Log::error('Error al buscar producto por link: ' . $e->getMessage());
             return $this->notFoundResponse('Producto no encontrado');
         }
     }
