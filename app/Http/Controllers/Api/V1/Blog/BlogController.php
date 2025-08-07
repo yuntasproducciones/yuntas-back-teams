@@ -22,6 +22,135 @@ class BlogController extends Controller
         $this->apiResponse = $apiResponse;
         $this->imageService = $imageService;
     }
+
+    /**
+     * @OA\Get(
+     *     path="/api/blogs",
+     *     tags={"Blogs"},
+     *     summary="Obtener todos los blogs",
+     *     description="Retorna una lista de todos los blogs con sus imágenes, párrafos y producto asociado",
+     *     operationId="getBlogsIndex",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Blogs obtenidos exitosamente",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=true
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Blogs obtenidos exitosamente"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(
+     *                         property="id",
+     *                         type="integer",
+     *                         description="ID único del blog",
+     *                         example=1
+     *                     ),
+     *                     @OA\Property(
+     *                         property="nombre_producto",
+     *                         type="string",
+     *                         nullable=true,
+     *                         description="Nombre del producto asociado al blog",
+     *                         example="Smartphone XYZ"
+     *                     ),
+     *                     @OA\Property(
+     *                         property="subtitulo",
+     *                         type="string",
+     *                         description="Subtítulo del blog",
+     *                         example="Descubre las últimas innovaciones tecnológicas"
+     *                     ),
+     *                     @OA\Property(
+     *                         property="imagen_principal",
+     *                         type="string",
+     *                         description="URL de la imagen principal del blog",
+     *                         example="/images/blog/principal_1.jpg"
+     *                     ),
+     *                     @OA\Property(
+     *                         property="imagenes",
+     *                         type="array",
+     *                         description="Array de imágenes asociadas al blog",
+     *                         @OA\Items(
+     *                             type="object",
+     *                             @OA\Property(
+     *                                 property="ruta_imagen",
+     *                                 type="string",
+     *                                 description="Ruta de la imagen",
+     *                                 example="/images/blog/imagen_1.jpg"
+     *                             ),
+     *                             @OA\Property(
+     *                                 property="text_alt",
+     *                                 type="string",
+     *                                 description="Texto alternativo para la imagen",
+     *                                 example="Vista frontal del producto"
+     *                             )
+     *                         )
+     *                     ),
+     *                     @OA\Property(
+     *                         property="parrafos",
+     *                         type="array",
+     *                         description="Array de párrafos del contenido del blog",
+     *                         @OA\Items(
+     *                             type="object",
+     *                             @OA\Property(
+     *                                 property="parrafo",
+     *                                 type="string",
+     *                                 description="Contenido del párrafo",
+     *                                 example="Este es el contenido del párrafo del blog que describe las características principales..."
+     *                             )
+     *                         )
+     *                     ),
+     *                     @OA\Property(
+     *                         property="created_at",
+     *                         type="string",
+     *                         format="date-time",
+     *                         description="Fecha y hora de creación del blog",
+     *                         example="2024-01-15T10:30:00.000000Z"
+     *                     ),
+     *                     @OA\Property(
+     *                         property="updated_at",
+     *                         type="string",
+     *                         format="date-time",
+     *                         description="Fecha y hora de última actualización del blog",
+     *                         example="2024-01-20T14:45:00.000000Z"
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error interno del servidor",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=false
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Error al obtener los blogs: Database connection failed"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="null",
+     *                 example=null
+     *             )
+     *         )
+     *     )
+     * )
+     */
     public function index()
     {
         try {
@@ -61,96 +190,252 @@ class BlogController extends Controller
             );
         }
     }
+
     /**
-     * Crear un nuevo blog
-     * 
-     * @OA\Post(
-     *     path="/api/v1/blogs",
-     *     summary="Crear un nuevo blog",
-     *     description="Almacena un nuevo blog y retorna los datos creados",
-     *     operationId="storeBlog",
+     * @OA\Get(
+     *     path="/api/blogs/{id}",
      *     tags={"Blogs"},
+     *     summary="Obtener un blog específico",
+     *     description="Retorna los detalles de un blog específico con sus imágenes, párrafos y producto asociado",
+     *     operationId="getBlogById",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID del blog a obtener",
+     *         @OA\Schema(
+     *             type="integer",
+     *             minimum=1,
+     *             example=1
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Blog obtenido exitosamente",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=true
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Blog obtenido exitosamente"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="id",
+     *                     type="integer",
+     *                     description="ID único del blog",
+     *                     example=1
+     *                 ),
+     *                 @OA\Property(
+     *                     property="nombre_producto",
+     *                     type="string",
+     *                     nullable=true,
+     *                     description="Nombre del producto asociado al blog",
+     *                     example="Smartphone XYZ"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="subtitulo",
+     *                     type="string",
+     *                     description="Subtítulo del blog",
+     *                     example="Descubre las últimas innovaciones tecnológicas"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="imagen_principal",
+     *                     type="string",
+     *                     description="URL de la imagen principal del blog",
+     *                     example="/images/blog/principal_1.jpg"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="imagenes",
+     *                     type="array",
+     *                     description="Array de imágenes asociadas al blog",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(
+     *                             property="ruta_imagen",
+     *                             type="string",
+     *                             description="Ruta de la imagen",
+     *                             example="/images/blog/imagen_1.jpg"
+     *                         ),
+     *                         @OA\Property(
+     *                             property="texto_alt",
+     *                             type="string",
+     *                             description="Texto alternativo para la imagen",
+     *                             example="Vista frontal del producto"
+     *                         )
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="parrafos",
+     *                     type="array",
+     *                     description="Array de párrafos del contenido del blog",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(
+     *                             property="parrafo",
+     *                             type="string",
+     *                             description="Contenido del párrafo",
+     *                             example="Este es el contenido del párrafo del blog que describe las características principales del producto..."
+     *                         )
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="created_at",
+     *                     type="string",
+     *                     format="date-time",
+     *                     description="Fecha y hora de creación del blog",
+     *                     example="2024-01-15T10:30:00.000000Z"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="updated_at",
+     *                     type="string",
+     *                     format="date-time",
+     *                     description="Fecha y hora de última actualización del blog",
+     *                     example="2024-01-20T14:45:00.000000Z"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Blog no encontrado",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=false
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Error al obtener el blog: No query results for model [App\\Models\\Blog] 1"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="null",
+     *                 example=null
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error interno del servidor",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=false
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Error al obtener el blog: Database connection failed"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="null",
+     *                 example=null
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function show(int $id)
+    {
+        try {
+            $blog = Blog::with(['imagenes', 'parrafos', 'producto'])
+                ->findOrFail($id);
+
+            $showBlog = [
+                'id' => $blog->id,
+                'nombre_producto' => $blog->producto ? $blog->producto->nombre : null,
+                'subtitulo' => $blog->subtitulo,
+                'imagen_principal' => $blog->imagen_principal,
+                'imagenes' => $blog->imagenes->map(function ($imagen) {
+                    return [
+                        'ruta_imagen' => $imagen->ruta_imagen,
+                        'texto_alt' => $imagen->text_alt,
+                    ];
+                }),
+                'parrafos' => $blog->parrafos->map(function ($parrafo) {
+                    return [
+                        'parrafo' => $parrafo->parrafo,
+                    ];
+                }),
+                'created_at' => $blog->created_at,
+                'updated_at' => $blog->updated_at
+            ];
+
+            return $this->apiResponse->successResponse(
+                $showBlog,
+                'Blog obtenido exitosamente',
+                HttpStatusCode::OK
+            );
+        } catch (\Exception $e) {
+            return $this->apiResponse->errorResponse(
+                'Error al obtener el blog: ' . $e->getMessage(),
+                HttpStatusCode::INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/blogs",
+     *     tags={"Blogs"},
+     *     summary="Crear un nuevo blog",
+     *     description="Crea un nuevo blog con imagen principal, imágenes adicionales opcionales y párrafos de contenido",
+     *     operationId="createBlog",
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\MediaType(
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
-     *                 required={
-     *                     "producto_id",  
-     *                     "titulo", 
-     *                     "link", 
-     *                     "parrafo", 
-     *                     "descripcion", 
-     *                     "imagen_principal", 
-     *                     "titulo_blog", 
-     *                     "subtitulo_beneficio", 
-     *                     "url_video", 
-     *                     "titulo_video"
-     *                 },
+     *                 type="object",
+     *                 required={"producto_id", "subtitulo", "imagen_principal", "parrafos"},
      *                 @OA\Property(
-     *                     property="titulo",
-     *                     type="string",
-     *                     example="Título del blog"
-     *                 ),
-     *                  @OA\Property(
-     *                     property="link",
-     *                     type="string",
-     *                     example="Link a blog..."
+     *                     property="producto_id",
+     *                     type="integer",
+     *                     description="ID del producto asociado al blog",
+     *                     example=1
      *                 ),
      *                 @OA\Property(
-     *                     property="parrafo",
+     *                     property="subtitulo",
      *                     type="string",
-     *                     example="Contenido del blog..."
-     *                 ),
-     *                 @OA\Property(
-     *                     property="descripcion",
-     *                     type="string",
-     *                     example="Descripción del blog..."
+     *                     description="Subtítulo del blog",
+     *                     example="Descubre las últimas innovaciones tecnológicas"
      *                 ),
      *                 @OA\Property(
      *                     property="imagen_principal",
      *                     type="string",
      *                     format="binary",
-     *                     description="Archivo de imagen principal del blog"
+     *                     description="Archivo de imagen principal del blog (requerido)"
      *                 ),
      *                 @OA\Property(
-     *                     property="titulo_blog",
-     *                     type="string",
-     *                     example="Título del detalle del blog"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="subtitulo_beneficio",
-     *                     type="string",
-     *                     example="Subtítulo de beneficios"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="url_video",
-     *                     type="string",
-     *                     example="https://example.com/video.mp4"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="titulo_video",
-     *                     type="string",
-     *                     example="Título del video"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="imagenes",
+     *                     property="imagenes[]",
      *                     type="array",
+     *                     description="Array de archivos de imágenes adicionales (opcional)",
      *                     @OA\Items(
-     *                         type="object",
-     *                         @OA\Property(
-     *                             property="imagen",
-     *                             type="string",
-     *                             example="https://example.com/imagen-adicional.jpg",
-     *                             format="binary",
-     *                             description="Archivo de imagen adicional"
-     *                         ),
-     *                         @OA\Property(
-     *                             property="parrafo",
-     *                             type="string",
-     *                             description="Descripción de la imagen adicional",
-     *                             example="Parrafo de la imagen adicional"
-     *                         )
+     *                         type="string",
+     *                         format="binary"
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="parrafos[]",
+     *                     type="array",
+     *                     description="Array de párrafos de contenido del blog",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         example="Este es un párrafo de contenido del blog que describe las características del producto..."
      *                     )
      *                 )
      *             )
@@ -158,20 +443,129 @@ class BlogController extends Controller
      *     ),
      *     @OA\Response(
      *         response=201,
-     *         description="Blog creado exitosamente",
+     *         description="Blog creado con éxito",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object"),
-     *             @OA\Property(property="message", type="string", example="Blog creado exitosamente")
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=true
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Blog creado con éxito."
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="id",
+     *                     type="integer",
+     *                     description="ID único del blog creado",
+     *                     example=1
+     *                 ),
+     *                 @OA\Property(
+     *                     property="producto_id",
+     *                     type="integer",
+     *                     description="ID del producto asociado",
+     *                     example=1
+     *                 ),
+     *                 @OA\Property(
+     *                     property="subtitulo",
+     *                     type="string",
+     *                     description="Subtítulo del blog",
+     *                     example="Descubre las últimas innovaciones tecnológicas"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="imagen_principal",
+     *                     type="string",
+     *                     description="URL de la imagen principal guardada",
+     *                     example="/images/blog/principal_1.jpg"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="created_at",
+     *                     type="string",
+     *                     format="date-time",
+     *                     description="Fecha y hora de creación",
+     *                     example="2024-01-15T10:30:00.000000Z"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="updated_at",
+     *                     type="string",
+     *                     format="date-time",
+     *                     description="Fecha y hora de última actualización",
+     *                     example="2024-01-15T10:30:00.000000Z"
+     *                 )
+     *             )
      *         )
      *     ),
      *     @OA\Response(
-     *         response=400,
-     *         description="Error de validación"
+     *         response=422,
+     *         description="Errores de validación",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=false
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="The given data was invalid."
+     *             ),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="producto_id",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         example="El campo producto id es obligatorio."
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="subtitulo",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         example="El campo subtitulo es obligatorio."
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="imagen_principal",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         example="El campo imagen principal es obligatorio."
+     *                     )
+     *                 )
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=500,
-     *         description="Error del servidor"
+     *         description="Error interno del servidor",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=false
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Error al crear el blog: No se recibió imagen_principal como archivo"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="null",
+     *                 example=null
+     *             )
+     *         )
      *     )
      * )
      */
@@ -222,100 +616,223 @@ class BlogController extends Controller
             );
         }
     }
+
     /**
-     * Mostrar un blog específico
-     * 
-     * @OA\Get(
-     *     path="/api/v1/blogs/{id}",
-     *     summary="Muestra un blog específico",
-     *     description="Retorna los datos de un blog según su ID",
-     *     operationId="showBlog",
+     * @OA\Post(
+     *     path="/api/blog/{id}",
      *     tags={"Blogs"},
+     *     summary="Actualizar un blog existente",
+     *     description="Actualiza un blog existente. Todos los campos son opcionales. Si se envían imágenes o párrafos, reemplazarán completamente los existentes.",
+     *     operationId="updateBlog",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
-     *         description="ID del blog",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         description="ID del blog a actualizar",
+     *         @OA\Schema(
+     *             type="integer",
+     *             minimum=1,
+     *             example=1
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="_method",
+     *         in="query",
+     *         required=false,
+     *         description="Método HTTP para override (usar PATCH para form-data)",
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"PATCH"},
+     *             example="PATCH"
+     *         )
+     *     ),
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="producto_id",
+     *                     type="integer",
+     *                     description="ID del producto asociado al blog (opcional)",
+     *                     example=2
+     *                 ),
+     *                 @OA\Property(
+     *                     property="subtitulo",
+     *                     type="string",
+     *                     description="Subtítulo del blog (opcional)",
+     *                     example="Nueva descripción actualizada del producto"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="imagen_principal",
+     *                     type="string",
+     *                     format="binary",
+     *                     description="Nuevo archivo de imagen principal (opcional). Si se envía, reemplaza la imagen actual"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="imagenes[]",
+     *                     type="array",
+     *                     description="Array de nuevos archivos de imágenes (opcional). Si se envía, reemplaza todas las imágenes existentes",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         format="binary"
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="parrafos[]",
+     *                     type="array",
+     *                     description="Array de párrafos actualizados (opcional). Si se envía, reemplaza todos los párrafos existentes",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         example="Este es un párrafo actualizado del contenido del blog..."
+     *                     )
+     *                 )
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Blog encontrado exitosamente",
+     *         description="Blog actualizado exitosamente",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="producto_id", type="integer", example=1),
-     *                 @OA\Property(property="titulo", type="string", example="Título del blog"),
-     *                 @OA\Property(property="link", type="string", example="Link a blog..."),
-     *                 @OA\Property(property="parrafo", type="string", example="Contenido del blog..."),
-     *                 @OA\Property(property="descripcion", type="string", example="Descripcion del blog..."),
-     *                 @OA\Property(property="imagen_principal", type="string", example="https://example.com/imagen-principal.jpg"),
-     *                 @OA\Property(property="titulo_blog", type="string", example="Título del detalle del blog"),
-     *                 @OA\Property(property="subtitulo_beneficio", type="string", example="Subtítulo de beneficios"),
-     *                 @OA\Property(property="imagenes", type="array", 
-     *                     @OA\Items(
-     *                         @OA\Property(property="url_imagen", type="string", example="https://example.com/imagen1.jpg"),
-     *                         @OA\Property(property="parrafo_imagen", type="string", example="Descripción de la imagen")
-     *                     )
-     *                 ),
-     *                 @OA\Property(property="url_video", type="string", example="https://example.com/video.mp4"),
-     *                 @OA\Property(property="titulo_video", type="string", example="Título del video"),
-     *                 @OA\Property(property="created_at", type="string")
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=true
      *             ),
-     *             @OA\Property(property="message", type="string", example="Blog encontrado exitosamente")
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Blog actualizado exitosamente"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="id",
+     *                     type="integer",
+     *                     description="ID único del blog",
+     *                     example=1
+     *                 ),
+     *                 @OA\Property(
+     *                     property="producto_id",
+     *                     type="integer",
+     *                     description="ID del producto asociado",
+     *                     example=2
+     *                 ),
+     *                 @OA\Property(
+     *                     property="subtitulo",
+     *                     type="string",
+     *                     description="Subtítulo actualizado del blog",
+     *                     example="Nueva descripción actualizada del producto"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="imagen_principal",
+     *                     type="string",
+     *                     description="URL de la imagen principal",
+     *                     example="/images/blog/principal_updated_1.jpg"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="created_at",
+     *                     type="string",
+     *                     format="date-time",
+     *                     description="Fecha y hora de creación original",
+     *                     example="2024-01-15T10:30:00.000000Z"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="updated_at",
+     *                     type="string",
+     *                     format="date-time",
+     *                     description="Fecha y hora de última actualización",
+     *                     example="2024-01-22T15:45:00.000000Z"
+     *                 )
+     *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Blog no encontrado"
+     *         description="Blog no encontrado",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=false
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Error al actualizar el blog: No query results for model [App\\Models\\Blog] 1"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="null",
+     *                 example=null
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Errores de validación",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=false
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="The given data was invalid."
+     *             ),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="producto_id",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         example="El producto seleccionado no es válido."
+     *                     )
+     *                 ),
+     *                 @OA\Property(
+     *                     property="subtitulo",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         example="El campo subtitulo debe ser una cadena de caracteres."
+     *                     )
+     *                 )
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=500,
-     *         description="Error del servidor"
+     *         description="Error interno del servidor",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="success",
+     *                 type="boolean",
+     *                 example=false
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Error al actualizar el blog: Database connection failed"
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="null",
+     *                 example=null
+     *             )
+     *         )
      *     )
      * )
      */
-
-    public function show(int $id)
-    {
-        try {
-            $blog = Blog::with(['imagenes', 'parrafos', 'producto'])
-                ->findOrFail($id);
-
-            $showBlog = [
-                'id' => $blog->id,
-                'nombre_producto' => $blog->producto ? $blog->producto->nombre : null,
-                'subtitulo' => $blog->subtitulo,
-                'imagen_principal' => $blog->imagen_principal,
-                'imagenes' => $blog->imagenes->map(function ($imagen) {
-                    return [
-                        'ruta_imagen' => $imagen->ruta_imagen,
-                        'texto_alt' => $imagen->text_alt,
-                    ];
-                }),
-                'parrafos' => $blog->parrafos->map(function ($parrafo) {
-                    return [
-                        'parrafo' => $parrafo->parrafo,
-                    ];
-                }),
-                'created_at' => $blog->created_at,
-                'updated_at' => $blog->updated_at
-            ];
-
-            return $this->apiResponse->successResponse(
-                $showBlog,
-                'Blog obtenido exitosamente',
-                HttpStatusCode::OK
-            );
-        } catch (\Exception $e) {
-            return $this->apiResponse->errorResponse(
-                'Error al obtener el blog: ' . $e->getMessage(),
-                HttpStatusCode::INTERNAL_SERVER_ERROR
-            );
-        }
-    }
-
     public function update(UpdateBlog $request, $id)
     {
         Log::info('PATCH Blog Request received:', ['request_all' => $request->all(), 'id' => $id]);
@@ -389,7 +906,7 @@ class BlogController extends Controller
      * Eliminar un blog específico
      * 
      * @OA\Delete(
-     *     path="/api/v1/blogs/{id}",
+     *     path="/api/blogs/{id}",
      *     summary="Elimina un blog específico",
      *     description="Elimina un blog existente según su ID",
      *     operationId="destroyBlog",
@@ -428,7 +945,7 @@ class BlogController extends Controller
         try {
             $blog = Blog::findOrFail($id);
             $rutasImagenes = $blog->imagenes->pluck('ruta_imagen')->toArray();
-        
+
             if ($blog->imagen_principal) {
                 $rutasImagenes[] = $blog->imagen_principal;
             }

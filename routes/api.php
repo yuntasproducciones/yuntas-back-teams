@@ -74,14 +74,7 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    Route::controller(BlogController::class)->prefix('blogs')->group(function () {
-
-        Route::post('/', 'store');
-
-        Route::middleware(['auth:sanctum', 'role:admin|user', 'permission:crear-productos'])->group(function () {
-           
-        });
-    });
+    
 
     // AUTH (login público)
     Route::controller(AuthController::class)->prefix('auth')->group(function () {
