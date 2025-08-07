@@ -20,24 +20,18 @@ class UpdateBlog extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      */
-    public function rules(): array
+    public function rules()
     {
-        $isPut = $this->isMethod('put');
-        $required = $isPut ? 'required' : 'sometimes';
+        // Detectar si es una actualización (viene _method=PATCH o es método PATCH)
+        $isUpdate = $this->isMethod('patch') || $this->input('_method') === 'PATCH';
 
         return [
-            'producto_id' => [$required, 'integer', 'exists:productos,id'],
-            'subtitulo' => [$required, 'string', 'max:255'],
-            
-            'imagen_principal' => ['sometimes', 'image', 'max:2048'],
-            'imagenes' => ['sometimes', 'array'],
-            'imagenes.*' => ['sometimes', 'image', 'max:2048'],
-
-            // 'text_alt' => [$isPut ? 'required' : 'sometimes', 'array'],
-            // 'text_alt.*' => [$isPut ? 'required' : 'sometimes', 'string', 'max:255'],
-
-            'parrafos' => [$isPut ? 'required' : 'sometimes', 'array'],
-            'parrafos.*' => [$isPut ? 'required' : 'sometimes', 'string', 'max:2047'],
+            'producto_id' => 'required|integer|exists:productos,id',
+            'subtitulo' => 'required|string|max:255',
+            'imagen_principal' => $isUpdate ? 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048' : 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'imagenes.*' => $isUpdate ? 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048' : 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'parrafos' => 'required|array|min:1',
+            'parrafos.*' => 'required|string',
         ];
     }
 
