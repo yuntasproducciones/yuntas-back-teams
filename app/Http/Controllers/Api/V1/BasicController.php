@@ -10,11 +10,11 @@ use Illuminate\Http\JsonResponse;
 
 class BasicController extends Controller
 {
-    protected $apiResponseService;
+    protected ApiResponseService $apiResponseService;
 
-    public function __construct(ApiResponseService $apiResponseService)
+    public function __construct(ApiResponseService $apiResponseService = null)
     {
-        $this->apiResponseService = $apiResponseService;
+        $this->apiResponseService = $apiResponseService ?? app(ApiResponseService::class);
     }
 
     /**
