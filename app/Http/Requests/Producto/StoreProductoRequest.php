@@ -9,20 +9,51 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class StoreProductoRequest extends FormRequest
 {
-
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * Prepara los datos antes de validarlos.
+     * Aquí normalizamos Swagger/Postman para que siempre sean arrays.
+     */
+    protected function prepareForValidation()
+    {
+        // Normalizar especificaciones
+        if ($this->has('especificaciones') && is_string($this->especificaciones)) {
+            $this->merge([
+                'especificaciones' => json_decode($this->especificaciones, true) ?? [$this->especificaciones]
+            ]);
+        }
+
+        // Normalizar beneficios
+        if ($this->has('beneficios') && is_string($this->beneficios)) {
+            $this->merge([
+                'beneficios' => json_decode($this->beneficios, true) ?? [$this->beneficios]
+            ]);
+        }
+
+        // Normalizar imagenes (si vienen como string desde Swagger)
+        if ($this->has('imagenes') && is_string($this->imagenes)) {
+            $this->merge([
+                'imagenes' => json_decode($this->imagenes, true) ?? [$this->imagenes]
+            ]);
+        }
+
+        // Normalizar tipos de imagen
+        if ($this->has('imagen_tipos') && is_string($this->imagen_tipos)) {
+            $this->merge([
+                'imagen_tipos' => json_decode($this->imagen_tipos, true) ?? [$this->imagen_tipos]
+            ]);
+        }
+    }
+
+    /**
+     * Reglas de validación
      */
     public function rules(): array
     {
-        // Log para debug
         Log::info('=== VALIDANDO REQUEST DE PRODUCTO ===');
         Log::info('Request data:', $this->all());
         Log::info('Request files:', $this->allFiles());
@@ -37,17 +68,18 @@ class StoreProductoRequest extends FormRequest
             // Especificaciones y beneficios como arrays
             'especificaciones' => 'nullable|array|max:20',
             'especificaciones.*' => 'sometimes|string|max:500',
+
             'beneficios' => 'nullable|array|max:20',
             'beneficios.*' => 'sometimes|string|max:500',
 
             //Imagen Principal
             'imagen_principal' => 'required|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
 
-            // Validación para el array de imágenes adicionales
+            // Imágenes adicionales
             'imagenes' => 'sometimes|array|max:10',
             'imagenes.*' => 'sometimes|nullable|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
 
-            // Array para identificar tipos de imagen
+            // Tipos de imagen
             'imagen_tipos' => 'nullable|array',
             'imagen_tipos.*' => 'sometimes|string|in:imagen_hero,imagen_especificaciones,imagen_beneficios',
         ];

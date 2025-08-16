@@ -134,23 +134,75 @@ class ProductoController extends BasicController
      *     tags={"Productos"},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             required={"nombre", "titulo", "descripcion", "imagen_principal", "seccion"},
-     *             @OA\Property(property="nombre", type="string", example="Producto XYZ"),
-     *             @OA\Property(property="link", type="string", example="producto-xyz"),
-     *             @OA\Property(property="titulo", type="string", example="Producto Premium XYZ"),
-     *             @OA\Property(property="descripcion", type="string", example="Descripción detallada del producto"),
-     *             @OA\Property(property="imagen_principal", type="string", example="https://placehold.co/100x150/blue/white?text=XYZ"),
-     *             @OA\Property(property="seccion", type="string", example="electrónica"),
-     *             @OA\Property(property="especificaciones", type="object",
-     *                 example={"color": "rojo", "material": "aluminio"}
-     *             ),
-     *             @OA\Property(property="beneficios", type="array", @OA\Items(type="string"), example={"Beneficio 1", "Beneficio 2"}),
-     *             @OA\Property(property="imagenes", type="array", @OA\Items(type="string"), example={"https://placehold.co/100x150/blue/white?text=Product_X", "https://placehold.co/100x150/blue/white?text=Product_Y"}),
-     *             @OA\Property(property="etiquetas", type="array", @OA\Items(type="object",
-     *                 @OA\Property(property="meta_titulo", type="string", example="Meta Título"),
-     *                 @OA\Property(property="meta_descripcion", type="string", example="Meta Descripción")
-     *             ))
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"nombre", "titulo", "descripcion", "imagen_principal", "seccion"},
+     * 
+     *                 @OA\Property(property="nombre", type="string", example="Producto XYZ"),
+     *                 @OA\Property(property="link", type="string", example="producto-xyz"),
+     *                 @OA\Property(property="titulo", type="string", example="Producto Premium XYZ"),
+     *                 @OA\Property(property="descripcion", type="string", example="Descripción detallada del producto"),
+     *                 @OA\Property(property="seccion", type="string", example="electrónica"),
+     *
+     *                 @OA\Property(
+     *                     property="imagen_principal",
+     *                     type="string",
+     *                     format="binary",
+     *                     description="Imagen principal del producto"
+     *                 ),
+     *
+     *                 @OA\Property(
+     *                     property="imagenes[0]",
+     *                     type="string",
+     *                     format="binary",
+     *                     description="Imagen adicional 1"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="imagenes[1]",
+     *                     type="string",
+     *                     format="binary",
+     *                     description="Imagen adicional 2"
+     *                 ),
+     *
+     *                 @OA\Property(
+     *                     property="especificaciones[0]",
+     *                     type="string",
+     *                     example="color:rojo",
+     *                     description="Primera especificación"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="especificaciones[1]",
+     *                     type="string",
+     *                     example="material:aluminio",
+     *                     description="Segunda especificación"
+     *                 ),
+     *
+     *                 @OA\Property(
+     *                     property="beneficios[0]",
+     *                     type="string",
+     *                     example="Beneficio 1",
+     *                     description="Primer beneficio"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="beneficios[1]",
+     *                     type="string",
+     *                     example="Beneficio 2",
+     *                     description="Segundo beneficio"
+     *                 ),
+     *
+     *                 
+     *                  @OA\Property(
+     *                     property="etiquetas",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="meta_titulo", type="string", example="Meta Título"),
+     *                         @OA\Property(property="meta_descripcion", type="string", example="Meta Descripción")
+     *                     ),
+     *                     description="Array de etiquetas SEO"
+     *                 )
+     *             )
      *         )
      *     ),
      *     @OA\Response(
@@ -162,90 +214,73 @@ class ProductoController extends BasicController
      *             @OA\Property(property="message", type="string", example="Producto creado exitosamente")
      *         )
      *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Error de validación"
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Error del servidor"
-     *     )
+     *     @OA\Response(response=400, description="Error de validación"),
+     *     @OA\Response(response=500, description="Error del servidor")
      * )
      */
-    public function store(StoreProductoRequest $request)
-    {
-        DB::beginTransaction();
-        try {
-            Log::info('=== INICIANDO CREACIÓN DE PRODUCTO ===');
-            Log::info('Request all data:', $request->all());
-            Log::info('Request files:', $request->allFiles());
 
-            // Preparar datos del producto (excluyendo especificaciones, beneficios, imagenes y etiquetas)
-            $data = $request->except(['especificaciones', 'beneficios', 'imagenes', 'imagen_principal', 'etiquetas']);
 
-            // Manejar imagen_principal
-            if ($request->hasFile('imagen_principal')) {
-                $imagenPrincipal = $request->file('imagen_principal');
-                $nombreArchivo = time() . '_principal_' . $imagenPrincipal->getClientOriginalName();
-                $rutaImagen = $imagenPrincipal->storeAs('productos', $nombreArchivo, 'public');
-                $data['imagen_principal'] = '/storage/' . $rutaImagen;
-            }
+public function store(StoreProductoRequest $request)
+{
+    try {
+        // Normalizar arrays (si vienen como string se convierten a array)
+        $especificaciones = $request->input('especificaciones');
+        if (!is_array($especificaciones)) {
+            $especificaciones = $especificaciones ? [$especificaciones] : [];
+        }
 
-            // Agregar especificaciones y beneficios como JSON
-            $data['especificaciones'] = $request->especificaciones ?? [];
-            $data['beneficios'] = $request->beneficios ?? [];
+        $beneficios = $request->input('beneficios');
+        if (!is_array($beneficios)) {
+            $beneficios = $beneficios ? [$beneficios] : [];
+        }
 
-            // Crear el producto
-            $producto = Producto::create($data);
+        $imagenes = $request->file('imagenes');
+        if (!is_array($imagenes)) {
+            $imagenes = $imagenes ? [$imagenes] : [];
+        }
 
-            // Procesar imágenes adicionales
-            if ($request->has('imagenes')) {
-                foreach ($request->imagenes as $index => $imagen) {
-                    try {
-                        if ($request->hasFile("imagenes.$index")) {
-                            $archivo = $request->file("imagenes.$index");
+        // Crear producto
+        $producto = Producto::create([
+            'link'              => $request->link,
+            'nombre'            => $request->nombre,
+            'titulo'            => $request->titulo,
+            'descripcion'       => $request->descripcion,
+            'seccion'           => $request->seccion,
+            'imagen_principal'  => $request->file('imagen_principal')
+                                    ? $request->file('imagen_principal')->store('productos', 'public')
+                                    : null,
+            'especificaciones'  => $especificaciones,
+            'beneficios'        => $beneficios,
+        ]);
 
-                            // Validar archivo
-                            if (!$archivo->isValid() || $archivo->getSize() == 0) {
-                                Log::info("Saltando archivo inválido en índice {$index}");
-                                continue;
-                            }
-
-                            $nombreArchivo = time() . '_' . $index . '_' . $archivo->getClientOriginalName();
-                            $rutaImagen = $archivo->storeAs('productos/adicionales', $nombreArchivo, 'public');
-
-                            if ($rutaImagen) {
-                                $producto->imagenes()->create([
-                                    'url_imagen' => '/storage/' . $rutaImagen,
-                                    'texto_alt_SEO' => 'Imagen del producto ' . $producto->nombre
-                                ]);
-                            }
-                        }
-                    } catch (\Exception $imageException) {
-                        Log::error("Error procesando imagen índice {$index}: " . $imageException->getMessage());
-                    }
-                }
-            }
-
-            // Procesar etiquetas
-            if ($request->has('etiquetas')) {
-                foreach ($request->etiquetas as $etiquetaData) {
-                    $producto->etiquetas()->create([
-                        'meta_titulo' => $etiquetaData['meta_titulo'] ?? null,
-                        'meta_descripcion' => $etiquetaData['meta_descripcion'] ?? null,
+        // Guardar imágenes adicionales
+        if (!empty($imagenes)) {
+            foreach ($imagenes as $imagen) {
+                if ($imagen) {
+                    $path = $imagen->store('productos', 'public');
+                    $producto->imagenes()->create([
+                        'url_imagen' => $path,
+                        'texto_alt_SEO' => 'Imagen del producto'
                     ]);
                 }
             }
-
-            DB::commit();
-            Log::info('=== PRODUCTO CREADO EXITOSAMENTE ===');
-            return $this->successResponse($producto, 'Producto creado exitosamente', HttpStatusCode::CREATED);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error al crear producto: ' . $e->getMessage());
-            return $this->errorResponse('Error al crear el producto: ' . $e->getMessage(), HttpStatusCode::INTERNAL_SERVER_ERROR);
         }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Producto creado correctamente',
+            'data' => $producto
+        ], 201);
+
+    } catch (\Exception $e) {
+        \Log::error("Error al crear el producto: " . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => "Error al crear el producto: " . $e->getMessage(),
+            'errors' => null
+        ], 500);
     }
+}
 
     /**
      * Mostrar un producto específico
@@ -299,7 +334,7 @@ class ProductoController extends BasicController
      */
     public function show($id)
     {
-        try{
+        try {
             $producto = Producto::with(['imagenes', 'etiqueta'])->findOrFail($id);
 
             $showProducto = [
@@ -332,15 +367,12 @@ class ProductoController extends BasicController
                 'Producto obtenido exitosamente',
                 HttpStatusCode::OK
             );
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return $this->apiResponse->errorResponse(
                 'Error al obtener el producto: ' . $e->getMessage(),
                 HttpStatusCode::INTERNAL_SERVER_ERROR
             );
         }
-
-        
     }
 
     public function showByLink($link)

@@ -22,13 +22,7 @@ use Illuminate\Routing\Controller as BaseController;
  *         description="API Server - Production"
  *     )
  * )
- * @OA\SecurityScheme(
- *     securityScheme="bearerAuth",
- *     type="apiKey",
- *     in="header",
- *     name="Authorization",
- *     description="Enter only the JWT token (without Bearer prefix)"
- * )
+
  */
 class Controller extends BaseController
 {
