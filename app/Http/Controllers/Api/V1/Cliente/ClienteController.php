@@ -56,29 +56,37 @@ class ClienteController extends BasicController
     public function index()
     {
         try {
-            // Obtener parámetros de paginación
             $page = request()->get('page', 1);
             $perPage = 10;
 
-            // Obtener clientes con paginación
-            $clientes = Cliente::paginate($perPage, ['*'], 'page', $page);
+            // Obtener clientes con relación cargada
+            $clientes = Cliente::with('producto')->paginate($perPage, ['*'], 'page', $page);
+
+            // Mapear los datos para incluir 'nombre_producto'
+            $data = collect($clientes->items())->map(function ($cliente) {
+                return [
+                    'id' => $cliente->id,
+                    'name' => $cliente->name,
+                    'email' => $cliente->email,
+                    'celular' => $cliente->celular,
+                    'producto_id' => $cliente->producto_id,
+                    'nombre_producto' => $cliente->producto ? $cliente->producto->nombre : null,
+                    'created_at' => $cliente->created_at,
+                    'updated_at' => $cliente->updated_at,
+                ];
+            });
 
             $message = $clientes->isEmpty() ? 'No hay clientes para listar.' : 'Clientes listados correctamente.';
 
-            // Estructura de respuesta para el frontend
             $response = [
-                'data' => $clientes->items(), // Los clientes de la página actual
-                'total' => $clientes->total(), // Total de registros
+                'data' => $data,
+                'total' => $clientes->total(),
                 'current_page' => $clientes->currentPage(),
                 'last_page' => $clientes->lastPage(),
                 'per_page' => $clientes->perPage()
             ];
 
-            return $this->successResponse(
-                $response,
-                $message,
-                HttpStatusCode::OK
-            );
+            return $this->successResponse($response, $message, HttpStatusCode::OK);
         } catch (\Exception $e) {
             Log::error('Error en índice de clientes: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
@@ -89,6 +97,7 @@ class ClienteController extends BasicController
             );
         }
     }
+
 
     /**
      * Store a newly created cliente in storage.
