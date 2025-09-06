@@ -70,6 +70,7 @@ Route::prefix('v1')->group(function () {
 
         Route::middleware(['auth:sanctum', 'role:admin|user'])->group(function () {
             Route::post('/', 'store')->middleware('permission:crear-productos');
+            Route::patch('/{id}', 'update')->middleware('permission:editar-productos');
             Route::put('/{id}', 'update')->middleware('permission:editar-productos');
             Route::delete('/{id}', 'destroy')->middleware('permission:eliminar-productos');
         });

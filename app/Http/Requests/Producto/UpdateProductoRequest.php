@@ -16,8 +16,11 @@ class UpdateProductoRequest extends FormRequest
 
     public function rules(): array
     {
+        $isPut = $this->isMethod('put');
+        $required = $isPut ? 'required' : 'sometimes';
+        $productoId = $this->route('id');
 
-        $productId = $this->route('producto') ?? $this->route('id'); // Ajusta según tu ruta
+        //$productId = $this->route('producto') ?? $this->route('id'); // Ajusta según tu ruta
 
         Log::info('=== VALIDANDO REQUEST DE ACTUALIZACIÓN DE PRODUCTO ===');
         Log::info('Request data:', $this->all());
@@ -25,10 +28,10 @@ class UpdateProductoRequest extends FormRequest
 
         return [
 
-            'link' => 'sometimes|required|string|unique:productos,link,' . $productId . '|max:255',
+            'link' => [$required,'string','unique:productos,link,' . $productoId, 'max:255'],
 
-            'nombre' => 'sometimes|required|string|max:255',
-            'titulo' => 'sometimes|required|string|max:255',
+            'nombre' => [$required, 'string', 'max:255'],
+            'titulo' => [$required, 'string', 'max:255'],
             'descripcion' => 'sometimes|nullable|string',
             'seccion' => 'sometimes|nullable|string|max:100',
 
